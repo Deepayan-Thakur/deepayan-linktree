@@ -28,6 +28,21 @@ const INITIAL_LINKS: LinkItem[] = [];
 
 const INITIAL_PROJECTS: ProjectItem[] = [];
 
+const STORAGE_VERSION = '2';
+const STORAGE_VERSION_KEY = 'dt_storage_version';
+
+function clearLegacyStorage() {
+  if (typeof window === 'undefined') return;
+  const storedVersion = localStorage.getItem(STORAGE_VERSION_KEY);
+  if (storedVersion !== STORAGE_VERSION) {
+    localStorage.removeItem('dt_links');
+    localStorage.removeItem('dt_projects');
+    localStorage.removeItem('dt_theme');
+    localStorage.setItem(STORAGE_VERSION_KEY, STORAGE_VERSION);
+  }
+}
+
+
 const DEFAULT_THEME: ThemeConfig = {
   primaryColor: '#6366f1',
   secondaryColor: '#a855f7',
@@ -44,17 +59,20 @@ const IconMap: Record<string, React.ElementType> = {
 
 export default function App() {
   const [links, setLinks] = useState<LinkItem[]>(() => {
+    clearLegacyStorage();
     const saved = localStorage.getItem('dt_links');
     const parsed = saved ? JSON.parse(saved) : INITIAL_LINKS;
     return parsed;
   });
 
   const [projects, setProjects] = useState<ProjectItem[]>(() => {
+    clearLegacyStorage();
     const saved = localStorage.getItem('dt_projects');
     return saved ? JSON.parse(saved) : INITIAL_PROJECTS;
   });
 
   const [theme, setTheme] = useState<ThemeConfig>(() => {
+    clearLegacyStorage();
     const saved = localStorage.getItem('dt_theme');
     const parsed = saved ? JSON.parse(saved) : {};
     // Force profile info to update while keeping any custom colors the user might have saved
