@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { LinkItem, ProjectItem, ThemeConfig } from './types';
+import { syncDataToGist, syncDataFromGist, StorageData } from './utils/gistStorage';
 
 const INITIAL_LINKS: LinkItem[] = [];
 
@@ -95,6 +96,29 @@ export default function App() {
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [passwordChecking, setPasswordChecking] = useState(false);
   const [pendingAction, setPendingAction] = useState<'links' | 'projects' | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  // Helper function to create storage data object
+  const createStorageData = (l: LinkItem[], p: ProjectItem[], t: ThemeConfig): StorageData => ({
+    links: l,
+    projects: p,
+    theme: t,
+    timestamp: new Date().toISOString(),
+  });
+
+  // Sync data to GitHub Gist
+  const syncToGist = async (l: LinkItem[], p: ProjectItem[], t: ThemeConfig) => {
+    if (isSyncing) return;
+    setIsSyncing(true);
+    try {
+      const data = createStorageData(l, p, t);
+      await syncDataToGist(data).catch(err => {
+        console.warn('⚠️ Gist sync failed (local storage intact):', err.message);
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const openAdminAction = (action: 'links' | 'projects') => {
     if (isAdmin) {
@@ -145,6 +169,27 @@ export default function App() {
     return () => clearInterval(timer);
   }, []);
 
+  // Load data from GitHub Gist on mount
+  useEffect(() => {
+    const loadFromGistOnMount = async () => {
+      try {
+        const localData = createStorageData(links, projects, theme);
+        const latestData = await syncDataFromGist(localData);
+        
+        if (latestData && (latestData.links !== links || latestData.projects !== projects)) {
+          setLinks(latestData.links);
+          setProjects(latestData.projects);
+          setTheme(latestData.theme || theme);
+          console.log('✅ Loaded data from GitHub Gist');
+        }
+      } catch (error) {
+        console.warn('⚠️ Could not load from Gist, using local data:', error);
+      }
+    };
+
+    loadFromGistOnMount();
+  }, []); // Run only on mount
+
   useEffect(() => {
     const hash = window.location.hash.toLowerCase();
     if (hash === '#projects') {
@@ -156,14 +201,17 @@ export default function App() {
 
   useEffect(() => {
     localStorage.setItem('dt_links', JSON.stringify(links));
+    syncToGist(links, projects, theme);
   }, [links]);
 
   useEffect(() => {
     localStorage.setItem('dt_projects', JSON.stringify(projects));
+    syncToGist(links, projects, theme);
   }, [projects]);
 
   useEffect(() => {
     localStorage.setItem('dt_theme', JSON.stringify(theme));
+    syncToGist(links, projects, theme);
   }, [theme]);
 
   const addLink = (newLink: Omit<LinkItem, 'id'>) => {
