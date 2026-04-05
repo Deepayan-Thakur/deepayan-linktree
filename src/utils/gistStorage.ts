@@ -1,7 +1,7 @@
 /**
  * GitHub Gist Storage Utility
  * Uses backend API endpoints to fetch/save data securely (token stays server-side)
- * Includes rate-limit protection with debouncing and caching
+ * Includes rate-limit protection with debouncing and exponential backoff
  */
 
 export interface StorageData {
@@ -13,15 +13,38 @@ export interface StorageData {
 
 // Rate limit protection
 let lastSaveTime = 0;
-const SAVE_DEBOUNCE_MS = 3000; // Wait 3 seconds between saves
+const SAVE_DEBOUNCE_MS = 5000; // Wait 5 seconds between saves
 let pendingSaveTimeout: NodeJS.Timeout | null = null;
 let pendingSaveData: StorageData | null = null;
 let isRateLimited = false;
+let rateLimitResetTime = 0;
+let backoffMultiplier = 1;
+
+/**
+ * Check if we should skip saving due to rate limit
+ */
+function shouldSkipSave(): boolean {
+  if (!isRateLimited) return false;
+  
+  const now = Date.now();
+  if (now < rateLimitResetTime) {
+    const waitSeconds = Math.ceil((rateLimitResetTime - now) / 1000);
+    console.warn(`⏳ Rate limited. Retry in ${waitSeconds}s...`);
+    return true;
+  }
+  
+  // Reset rate limit state
+  isRateLimited = false;
+  backoffMultiplier = 1;
+  return false;
+}
 
 /**
  * Load data from GitHub Gist via backend API
  */
 export async function loadFromGist(): Promise<StorageData | null> {
+  if (shouldSkipSave()) return null;
+
   try {
     const response = await fetch('/api/gist-load', {
       method: 'GET',
@@ -35,7 +58,6 @@ export async function loadFromGist(): Promise<StorageData | null> {
 
     const data = await response.json();
     console.log('✅ Data loaded from GitHub Gist');
-    isRateLimited = false;
     return data;
   } catch (error) {
     console.error('❌ Error loading from gist:', error);
@@ -47,6 +69,10 @@ export async function loadFromGist(): Promise<StorageData | null> {
  * Save data to GitHub Gist via backend API
  */
 export async function saveToGist(data: StorageData): Promise<void> {
+  if (shouldSkipSave()) {
+    throw new Error('Rate limited - skipping save');
+  }
+
   try {
     const response = await fetch('/api/gist-save', {
       method: 'POST',
@@ -56,16 +82,23 @@ export async function saveToGist(data: StorageData): Promise<void> {
 
     if (!response.ok) {
       const error = await response.json();
+      
+      // Handle rate limit
       if (response.status === 403 && error.error?.includes('rate limit')) {
         isRateLimited = true;
-        console.warn('⚠️ GitHub API rate limit hit. Will retry in 60 seconds.');
+        // Set retry time: exponential backoff (1 min, 2 min, 4 min, etc.)
+        const backoffSeconds = Math.min(60 * backoffMultiplier, 3600); // Max 1 hour
+        rateLimitResetTime = Date.now() + backoffSeconds * 1000;
+        backoffMultiplier *= 2;
+        
+        console.warn(`⛔ GitHub API rate limit hit. Will retry in ${backoffSeconds}s.`);
         throw new Error('Rate limit exceeded - retrying later');
       }
+      
       throw new Error(error.error || `Failed to save to gist: ${response.statusText}`);
     }
 
     console.log('✅ Data saved to GitHub Gist');
-    isRateLimited = false;
     lastSaveTime = Date.now();
   } catch (error) {
     console.error('❌ Error saving to gist:', error);
@@ -81,7 +114,7 @@ export async function syncDataToGist(data: StorageData): Promise<void> {
   pendingSaveData = data;
 
   // If rate limited, don't try to save
-  if (isRateLimited) {
+  if (shouldSkipSave()) {
     console.warn('⚠️ Skipping sync (rate limited). Data saved to localStorage.');
     return;
   }
@@ -91,7 +124,7 @@ export async function syncDataToGist(data: StorageData): Promise<void> {
     clearTimeout(pendingSaveTimeout);
   }
 
-  // Set new debounced save
+  // Set new debounced save (increase to 5 seconds to batch changes)
   pendingSaveTimeout = setTimeout(async () => {
     if (!pendingSaveData) return;
     
