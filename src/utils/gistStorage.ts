@@ -86,12 +86,19 @@ export async function saveToGist(data: StorageData): Promise<void> {
       // Handle rate limit
       if (response.status === 403 && error.error?.includes('rate limit')) {
         isRateLimited = true;
-        // Set retry time: exponential backoff (1 min, 2 min, 4 min, etc.)
-        const backoffSeconds = Math.min(60 * backoffMultiplier, 3600); // Max 1 hour
-        rateLimitResetTime = Date.now() + backoffSeconds * 1000;
-        backoffMultiplier *= 2;
-        
-        console.warn(`⛔ GitHub API rate limit hit. Will retry in ${backoffSeconds}s.`);
+
+        const retryAfter = typeof error.retryAfter === 'number' ? error.retryAfter : null;
+        if (retryAfter && retryAfter > Date.now()) {
+          rateLimitResetTime = retryAfter;
+          console.warn(`⛔ GitHub API rate limit hit. Will retry at ${new Date(retryAfter).toLocaleTimeString()}.`);
+        } else {
+          // Set retry time: exponential backoff (1 min, 2 min, 4 min, etc.)
+          const backoffSeconds = Math.min(60 * backoffMultiplier, 3600); // Max 1 hour
+          rateLimitResetTime = Date.now() + backoffSeconds * 1000;
+          backoffMultiplier *= 2;
+          console.warn(`⛔ GitHub API rate limit hit. Will retry in ${backoffSeconds}s.`);
+        }
+
         throw new Error('Rate limit exceeded - retrying later');
       }
       

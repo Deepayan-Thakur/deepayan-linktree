@@ -49,13 +49,24 @@ export default function handler(req: any, res: any) {
 
       if (!response.ok) {
         let errorMsg = response.statusText;
+        let resetTime: number | null = null;
         try {
           const errorData = JSON.parse(responseBody);
           errorMsg = errorData.message || errorMsg;
         } catch (e) {
           // Response wasn't JSON
         }
-        throw new Error(`GitHub API error (${response.status}): ${errorMsg}`);
+
+        const resetHeader = response.headers.get('x-ratelimit-reset');
+        if (resetHeader) {
+          resetTime = parseInt(resetHeader, 10) * 1000;
+        }
+
+        return res.status(response.status).json({
+          error: errorMsg,
+          retryAfter: resetTime,
+          status: response.status,
+        });
       }
 
       return res.status(200).json({ success: true, message: 'Data saved to gist' });
