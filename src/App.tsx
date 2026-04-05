@@ -90,6 +90,15 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    const hash = window.location.hash.toLowerCase();
+    if (hash === '#projects') {
+      setActiveTab('projects');
+    } else if (hash === '#links') {
+      setActiveTab('links');
+    }
+  }, []);
+
+  useEffect(() => {
     localStorage.setItem('dt_links', JSON.stringify(links));
   }, [links]);
 
@@ -156,6 +165,7 @@ export default function App() {
       <main className="relative z-10 max-w-2xl mx-auto px-4 sm:px-6 py-12 sm:py-16 flex flex-col items-center">
         {/* Profile Section */}
         <motion.div
+          id="profile"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col items-center text-center mb-12 w-full"
@@ -222,6 +232,7 @@ export default function App() {
           <AnimatePresence mode="wait">
             {activeTab === 'links' ? (
               <motion.div
+                id="links"
                 key="links"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -275,6 +286,7 @@ export default function App() {
               </motion.div>
             ) : (
               <motion.div
+                id="projects"
                 key="projects"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -349,7 +361,7 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="relative z-10 py-12 text-center text-white/30 text-sm px-6">
+      <footer id="footer" className="relative z-10 py-12 text-center text-white/30 text-sm px-6">
         <p>© {new Date().getFullYear()} {theme.profileName}. Built with Passion.</p>
       </footer>
     </div>
