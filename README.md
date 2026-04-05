@@ -1,20 +1,64 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Deepayan Thakur - Personal Portfolio & Links
 
-# Run and deploy your AI Studio app
+A highly customizable, responsive, and visually stunning personal landing page inspired by Linktree. Built with a modern tech stack focusing on performance and aesthetics.
 
-This contains everything you need to run your app locally.
+## ✨ Features
 
-View your app in AI Studio: https://ai.studio/apps/f0ed49af-8684-43aa-b930-36cd0456cd6f
+- **Dynamic Backgrounds**: Animated radial gradients and glassmorphism effects for a premium feel.
+- **Responsive Design**: Fully optimized for mobile, tablet, and desktop views.
+- **Tabbed Interface**: Clean separation between social links and project showcases.
+- **Interactive UI**: Smooth animations powered by Framer Motion.
+- **Professional Styling**: Modern typography and high-quality icons from Lucide React.
 
-## Run Locally
+## 🚀 Tech Stack
 
-**Prerequisites:**  Node.js
+- **Frontend**: React 18+ with TypeScript
+- **Styling**: Tailwind CSS 4
+- **Animations**: Framer Motion
+- **Icons**: Lucide React
+- **Build Tool**: Vite
 
+## 🛠️ Getting Started
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (v18 or higher)
+- npm or yarn
+
+### Installation
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/your-username/your-repo-name.git
+   ```
+
+2. Navigate to the project directory:
+   ```bash
+   cd your-repo-name
+   ```
+
+3. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+4. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## 📦 Deployment
+
+To create a production build:
+
+```bash
+npm run build
+```
+
+The output will be in the `dist/` folder, which can be hosted on platforms like Vercel, Netlify, or GitHub Pages.
+
+## 📄 License
+
+This project is licensed under the Apache-2.0 License.
