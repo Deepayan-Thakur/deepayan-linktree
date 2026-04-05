@@ -96,7 +96,6 @@ export default function App() {
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [passwordChecking, setPasswordChecking] = useState(false);
   const [pendingAction, setPendingAction] = useState<'links' | 'projects' | null>(null);
-  const [isSyncing, setIsSyncing] = useState(false);
 
   // Helper function to create storage data object
   const createStorageData = (l: LinkItem[], p: ProjectItem[], t: ThemeConfig): StorageData => ({
@@ -105,20 +104,6 @@ export default function App() {
     theme: t,
     timestamp: new Date().toISOString(),
   });
-
-  // Sync data to GitHub Gist
-  const syncToGist = async (l: LinkItem[], p: ProjectItem[], t: ThemeConfig) => {
-    if (isSyncing) return;
-    setIsSyncing(true);
-    try {
-      const data = createStorageData(l, p, t);
-      await syncDataToGist(data).catch(err => {
-        console.warn('⚠️ Gist sync failed (local storage intact):', err.message);
-      });
-    } finally {
-      setIsSyncing(false);
-    }
-  };
 
   const openAdminAction = (action: 'links' | 'projects') => {
     if (isAdmin) {
@@ -201,17 +186,17 @@ export default function App() {
 
   useEffect(() => {
     localStorage.setItem('dt_links', JSON.stringify(links));
-    syncToGist(links, projects, theme);
+    syncDataToGist(createStorageData(links, projects, theme));
   }, [links]);
 
   useEffect(() => {
     localStorage.setItem('dt_projects', JSON.stringify(projects));
-    syncToGist(links, projects, theme);
+    syncDataToGist(createStorageData(links, projects, theme));
   }, [projects]);
 
   useEffect(() => {
     localStorage.setItem('dt_theme', JSON.stringify(theme));
-    syncToGist(links, projects, theme);
+    syncDataToGist(createStorageData(links, projects, theme));
   }, [theme]);
 
   const addLink = (newLink: Omit<LinkItem, 'id'>) => {
