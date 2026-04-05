@@ -30,8 +30,10 @@ export default function handler(req: any, res: any) {
           'Authorization': `token ${token}`,
           'Accept': 'application/vnd.github.v3+json',
           'Content-Type': 'application/json',
+          'User-Agent': 'Linktree-Storage',
         },
         body: JSON.stringify({
+          description: "Deepayan's Creative Linktree - Data Storage",
           files: {
             'linktree-data.json': {
               content: JSON.stringify(data, null, 2),
@@ -40,13 +42,25 @@ export default function handler(req: any, res: any) {
         }),
       });
 
+      // Log response details for debugging
+      const responseBody = await response.text();
+      console.log(`[Gist Save] Status: ${response.status}`);
+      console.log(`[Gist Save] Response:`, responseBody);
+
       if (!response.ok) {
-        throw new Error(`GitHub API error: ${response.statusText}`);
+        let errorMsg = response.statusText;
+        try {
+          const errorData = JSON.parse(responseBody);
+          errorMsg = errorData.message || errorMsg;
+        } catch (e) {
+          // Response wasn't JSON
+        }
+        throw new Error(`GitHub API error (${response.status}): ${errorMsg}`);
       }
 
       return res.status(200).json({ success: true, message: 'Data saved to gist' });
     } catch (error: any) {
-      console.error('Error saving to gist:', error);
+      console.error('[Gist Save Error]', error);
       return res.status(500).json({ error: error.message || 'Failed to save to gist' });
     }
   };
