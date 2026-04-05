@@ -4,17 +4,17 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Github, 
-  Twitter, 
-  Linkedin, 
-  Instagram, 
-  Globe, 
-  Plus, 
-  ExternalLink, 
-  Settings2, 
-  Trash2, 
-  LayoutGrid, 
+import {
+  Github,
+  Twitter,
+  Linkedin,
+  Instagram,
+  Globe,
+  Plus,
+  ExternalLink,
+  Settings2,
+  Trash2,
+  LayoutGrid,
   Link as LinkIcon,
   X,
   Code,
@@ -25,28 +25,18 @@ import { motion, AnimatePresence } from 'motion/react';
 import { LinkItem, ProjectItem, ThemeConfig } from './types';
 
 const INITIAL_LINKS: LinkItem[] = [
-  { id: '1', title: 'GitHub Portfolio', url: 'https://github.com', icon: 'Github', color: '#333' },
-  { id: '2', title: 'LinkedIn Profile', url: 'https://linkedin.com', icon: 'Linkedin', color: '#0077b5' },
-  { id: '3', title: 'Twitter / X', url: 'https://twitter.com', icon: 'Twitter', color: '#1DA1F2' },
-  { id: '4', title: 'Personal Website', url: 'https://example.com', icon: 'Globe', color: '#10b981' },
+  { id: '1', title: 'GitHub Portfolio', url: 'https://github.com/Deepayan-Thakur', icon: 'Github', color: '#333' },
+  { id: '2', title: 'LinkedIn Profile', url: 'https://www.linkedin.com/in/deepayanthakur', icon: 'Linkedin', color: '#0077b5' },
 ];
 
 const INITIAL_PROJECTS: ProjectItem[] = [
-  { 
-    id: 'p1', 
-    title: 'AI Dashboard', 
-    description: 'A real-time analytics dashboard powered by AI.', 
-    url: '#', 
+  {
+    id: 'p1',
+    title: 'AI Dashboard',
+    description: 'A real-time analytics dashboard powered by AI.',
+    url: '#',
     image: 'https://picsum.photos/seed/ai-dash/600/400',
     tags: ['React', 'Tailwind', 'Gemini']
-  },
-  { 
-    id: 'p2', 
-    title: 'E-commerce App', 
-    description: 'Modern shopping experience with seamless checkout.', 
-    url: '#', 
-    image: 'https://picsum.photos/seed/shop/600/400',
-    tags: ['Next.js', 'Stripe', 'Firebase']
   },
 ];
 
@@ -56,8 +46,8 @@ const DEFAULT_THEME: ThemeConfig = {
   accentColor: '#ec4899',
   backgroundColor: '#0f172a',
   profileName: 'Deepayan Thakur',
-  profileBio: 'Full Stack Developer & Creative Designer',
-  profileImage: 'https://picsum.photos/seed/deepayan/200',
+  profileBio: 'Software Development Engineer | AiML Engineer',
+  profileImage: 'https://github.com/Deepayan-Thakur.png',
 };
 
 const IconMap: Record<string, React.ElementType> = {
@@ -70,7 +60,7 @@ export default function App() {
     const parsed = saved ? JSON.parse(saved) : INITIAL_LINKS;
     return parsed;
   });
-  
+
   const [projects, setProjects] = useState<ProjectItem[]>(() => {
     const saved = localStorage.getItem('dt_projects');
     return saved ? JSON.parse(saved) : INITIAL_PROJECTS;
@@ -78,13 +68,26 @@ export default function App() {
 
   const [theme, setTheme] = useState<ThemeConfig>(() => {
     const saved = localStorage.getItem('dt_theme');
-    const parsed = saved ? JSON.parse(saved) : DEFAULT_THEME;
-    return { ...DEFAULT_THEME, ...parsed };
+    const parsed = saved ? JSON.parse(saved) : {};
+    // Force profile info to update while keeping any custom colors the user might have saved
+    return {
+      ...DEFAULT_THEME,
+      ...parsed,
+      profileName: DEFAULT_THEME.profileName,
+      profileBio: DEFAULT_THEME.profileBio,
+      profileImage: DEFAULT_THEME.profileImage
+    };
   });
 
   const [isAddingLink, setIsAddingLink] = useState(false);
   const [isAddingProject, setIsAddingProject] = useState(false);
   const [activeTab, setActiveTab] = useState<'links' | 'projects'>('links');
+  const [currentTime, setCurrentTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('dt_links', JSON.stringify(links));
@@ -117,9 +120,9 @@ export default function App() {
   };
 
   return (
-    <div 
+    <div
       className="min-h-screen w-full relative overflow-x-hidden font-sans text-white selection:bg-white/30 pb-24"
-      style={{ 
+      style={{
         backgroundColor: theme.backgroundColor,
         backgroundImage: `radial-gradient(circle at 0% 0%, ${theme.primaryColor}33 0%, transparent 50%), 
                           radial-gradient(circle at 100% 100%, ${theme.secondaryColor}33 0%, transparent 50%),
@@ -128,9 +131,9 @@ export default function App() {
     >
       {/* Animated background blobs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <motion.div 
-          animate={{ 
-            x: [0, 100, 0], 
+        <motion.div
+          animate={{
+            x: [0, 100, 0],
             y: [0, -50, 0],
             scale: [1, 1.2, 1]
           }}
@@ -138,9 +141,9 @@ export default function App() {
           className="absolute -top-20 -left-20 w-96 h-96 rounded-full blur-[120px]"
           style={{ backgroundColor: theme.primaryColor + '22' }}
         />
-        <motion.div 
-          animate={{ 
-            x: [0, -100, 0], 
+        <motion.div
+          animate={{
+            x: [0, -100, 0],
             y: [0, 50, 0],
             scale: [1, 1.5, 1]
           }}
@@ -152,25 +155,35 @@ export default function App() {
 
       <main className="relative z-10 max-w-2xl mx-auto px-4 sm:px-6 py-12 sm:py-16 flex flex-col items-center">
         {/* Profile Section */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col items-center text-center mb-12 w-full"
         >
+          {/* Live Time Display */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mb-8 inline-flex items-center gap-2 px-4 py-2 glass rounded-full text-[10px] font-mono text-white/60 tracking-[0.2em] uppercase"
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]" />
+            {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+          </motion.div>
+
           <div className="relative flex items-center justify-center">
-            <motion.div 
+            <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
               className="absolute -inset-4 rounded-full blur-xl opacity-50"
               style={{ backgroundImage: `conic-gradient(from 0deg, ${theme.primaryColor}, ${theme.accentColor}, ${theme.secondaryColor}, ${theme.primaryColor})` }}
             ></motion.div>
-            <div 
+            <div
               className="relative p-1 rounded-full"
               style={{ backgroundImage: `linear-gradient(135deg, ${theme.primaryColor}, ${theme.accentColor})` }}
             >
-              <img 
-                src={theme.profileImage} 
-                alt={theme.profileName} 
+              <img
+                src={theme.profileImage}
+                alt={theme.profileName}
                 className="w-28 h-28 sm:w-32 sm:h-32 rounded-full border-2 border-white/20 object-cover shadow-2xl bg-slate-900"
                 referrerPolicy="no-referrer"
               />
@@ -186,7 +199,7 @@ export default function App() {
 
         {/* Tab Switcher */}
         <div className="flex p-1 glass rounded-full mb-8 w-full max-w-xs">
-          <button 
+          <button
             onClick={() => setActiveTab('links')}
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-full transition-all duration-300 ${activeTab === 'links' ? 'shadow-lg text-white' : 'text-white/50 hover:text-white/80'}`}
             style={{ backgroundColor: activeTab === 'links' ? theme.primaryColor + '66' : 'transparent' }}
@@ -194,7 +207,7 @@ export default function App() {
             <LinkIcon size={18} />
             <span className="text-sm font-bold">Links</span>
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab('projects')}
             className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-full transition-all duration-300 ${activeTab === 'projects' ? 'shadow-lg text-white' : 'text-white/50 hover:text-white/80'}`}
             style={{ backgroundColor: activeTab === 'projects' ? theme.primaryColor + '66' : 'transparent' }}
@@ -208,7 +221,7 @@ export default function App() {
         <div className="w-full space-y-4">
           <AnimatePresence mode="wait">
             {activeTab === 'links' ? (
-              <motion.div 
+              <motion.div
                 key="links"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -227,18 +240,18 @@ export default function App() {
                     className="group relative flex items-center p-4 glass rounded-2xl transition-all duration-300 hover:bg-white/15 active:scale-[0.98] overflow-hidden"
                   >
                     {/* Hover Glow Effect */}
-                    <div 
+                    <div
                       className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500"
                       style={{ backgroundColor: link.color || theme.primaryColor }}
                     ></div>
-                    
-                    <div 
+
+                    <div
                       className="w-12 h-12 flex items-center justify-center rounded-xl text-white/80 transition-colors"
                       style={{ backgroundColor: (link.color || theme.primaryColor) + '33' }}
                     >
                       {React.createElement(IconMap[link.icon] || LinkIcon, { size: 24 })}
                     </div>
-                    
+
                     <div className="ml-4 flex-1">
                       <h3 className="font-display font-semibold text-lg group-hover:translate-x-1 transition-transform duration-300">
                         {link.title}
@@ -250,8 +263,8 @@ export default function App() {
                     </div>
                   </motion.a>
                 ))}
-                
-                <button 
+
+                <button
                   onClick={() => setIsAddingLink(true)}
                   className="w-full flex items-center justify-center gap-2 p-4 border-2 border-dashed rounded-2xl text-white/40 hover:text-white transition-all group"
                   style={{ borderColor: theme.primaryColor + '33' }}
@@ -261,7 +274,7 @@ export default function App() {
                 </button>
               </motion.div>
             ) : (
-              <motion.div 
+              <motion.div
                 key="projects"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -277,28 +290,19 @@ export default function App() {
                     className="group relative glass rounded-2xl overflow-hidden flex flex-col"
                   >
                     <div className="aspect-video overflow-hidden relative">
-                      <img 
-                        src={project.image} 
-                        alt={project.title} 
+                      <img
+                        src={project.image}
+                        alt={project.title}
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                         referrerPolicy="no-referrer"
                       />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
-                        <a 
+                        <a
                           href={project.url}
                           className="p-3 bg-white text-black rounded-full hover:scale-110 transition-transform"
                         >
                           <ExternalLink size={20} />
                         </a>
-                        <button 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            deleteProject(project.id);
-                          }}
-                          className="p-3 bg-red-500 text-white rounded-full hover:scale-110 transition-transform"
-                        >
-                          <Trash2 size={20} />
-                        </button>
                       </div>
                     </div>
                     <div className="p-4 flex-1 flex flex-col">
@@ -314,8 +318,8 @@ export default function App() {
                     </div>
                   </motion.div>
                 ))}
-                
-                <button 
+
+                <button
                   onClick={() => setIsAddingProject(true)}
                   className="flex flex-col items-center justify-center gap-2 p-8 border-2 border-dashed rounded-2xl text-white/40 hover:text-white transition-all group min-h-[200px]"
                   style={{ borderColor: theme.primaryColor + '33' }}
@@ -335,7 +339,7 @@ export default function App() {
               <AddLinkForm onSubmit={addLink} />
             </Modal>
           )}
-          
+
           {isAddingProject && (
             <Modal title="Add New Project" onClose={() => setIsAddingProject(false)}>
               <AddProjectForm onSubmit={addProject} />
@@ -354,19 +358,19 @@ export default function App() {
 
 function Modal({ title, children, onClose }: { title: string, children: React.ReactNode, onClose: () => void }) {
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm"
     >
-      <motion.div 
+      <motion.div
         initial={{ scale: 0.9, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         exit={{ scale: 0.9, opacity: 0, y: 20 }}
         className="w-full max-w-md glass rounded-3xl p-8 relative max-h-[90vh] overflow-y-auto"
       >
-        <button 
+        <button
           onClick={onClose}
           className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors"
         >
@@ -386,7 +390,7 @@ function AddLinkForm({ onSubmit }: { onSubmit: (link: Omit<LinkItem, 'id'>) => v
     <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); onSubmit(formData); }}>
       <div>
         <label className="block text-sm font-medium text-white/60 mb-1">Title</label>
-        <input 
+        <input
           required
           className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-white/30 transition-colors"
           placeholder="e.g. My Portfolio"
@@ -396,7 +400,7 @@ function AddLinkForm({ onSubmit }: { onSubmit: (link: Omit<LinkItem, 'id'>) => v
       </div>
       <div>
         <label className="block text-sm font-medium text-white/60 mb-1">URL</label>
-        <input 
+        <input
           required
           type="url"
           className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-white/30 transition-colors"
@@ -408,7 +412,7 @@ function AddLinkForm({ onSubmit }: { onSubmit: (link: Omit<LinkItem, 'id'>) => v
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-white/60 mb-1">Icon</label>
-          <select 
+          <select
             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-white/30 transition-colors appearance-none"
             value={formData.icon}
             onChange={e => setFormData({ ...formData, icon: e.target.value })}
@@ -420,7 +424,7 @@ function AddLinkForm({ onSubmit }: { onSubmit: (link: Omit<LinkItem, 'id'>) => v
         </div>
         <div>
           <label className="block text-sm font-medium text-white/60 mb-1">Color</label>
-          <input 
+          <input
             type="color"
             className="w-full h-[50px] bg-white/5 border border-white/10 rounded-xl px-2 py-1 focus:outline-none focus:border-white/30 transition-colors cursor-pointer"
             value={formData.color}
@@ -428,7 +432,7 @@ function AddLinkForm({ onSubmit }: { onSubmit: (link: Omit<LinkItem, 'id'>) => v
           />
         </div>
       </div>
-      <button 
+      <button
         type="submit"
         className="w-full py-4 bg-white text-black font-bold rounded-2xl hover:scale-[1.02] active:scale-95 transition-all mt-4"
       >
@@ -439,10 +443,10 @@ function AddLinkForm({ onSubmit }: { onSubmit: (link: Omit<LinkItem, 'id'>) => v
 }
 
 function AddProjectForm({ onSubmit }: { onSubmit: (project: Omit<ProjectItem, 'id'>) => void }) {
-  const [formData, setFormData] = useState({ 
-    title: '', 
-    description: '', 
-    url: '', 
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    url: '',
     image: 'https://picsum.photos/seed/new-proj/600/400',
     tags: ''
   });
@@ -451,7 +455,7 @@ function AddProjectForm({ onSubmit }: { onSubmit: (project: Omit<ProjectItem, 'i
     <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); onSubmit({ ...formData, tags: formData.tags.split(',').map(t => t.trim()) }); }}>
       <div>
         <label className="block text-sm font-medium text-white/60 mb-1">Project Title</label>
-        <input 
+        <input
           required
           className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-white/30 transition-colors"
           placeholder="e.g. Awesome App"
@@ -461,7 +465,7 @@ function AddProjectForm({ onSubmit }: { onSubmit: (project: Omit<ProjectItem, 'i
       </div>
       <div>
         <label className="block text-sm font-medium text-white/60 mb-1">Description</label>
-        <textarea 
+        <textarea
           required
           className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-white/30 transition-colors min-h-[100px]"
           placeholder="What does it do?"
@@ -471,7 +475,7 @@ function AddProjectForm({ onSubmit }: { onSubmit: (project: Omit<ProjectItem, 'i
       </div>
       <div>
         <label className="block text-sm font-medium text-white/60 mb-1">URL</label>
-        <input 
+        <input
           required
           type="url"
           className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-white/30 transition-colors"
@@ -482,14 +486,14 @@ function AddProjectForm({ onSubmit }: { onSubmit: (project: Omit<ProjectItem, 'i
       </div>
       <div>
         <label className="block text-sm font-medium text-white/60 mb-1">Tags (comma separated)</label>
-        <input 
+        <input
           className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-white/30 transition-colors"
           placeholder="React, Node, AI"
           value={formData.tags}
           onChange={e => setFormData({ ...formData, tags: e.target.value })}
         />
       </div>
-      <button 
+      <button
         type="submit"
         className="w-full py-4 bg-white text-black font-bold rounded-2xl hover:scale-[1.02] active:scale-95 transition-all mt-4"
       >
