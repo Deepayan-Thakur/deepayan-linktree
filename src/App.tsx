@@ -89,6 +89,56 @@ export default function App() {
   const [isAddingProject, setIsAddingProject] = useState(false);
   const [activeTab, setActiveTab] = useState<'links' | 'projects'>('links');
   const [currentTime, setCurrentTime] = useState(new Date());
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [passwordChecking, setPasswordChecking] = useState(false);
+  const [pendingAction, setPendingAction] = useState<'links' | 'projects' | null>(null);
+
+  const openAdminAction = (action: 'links' | 'projects') => {
+    if (isAdmin) {
+      if (action === 'links') {
+        setIsAddingLink(true);
+      } else {
+        setIsAddingProject(true);
+      }
+      return;
+    }
+
+    setPendingAction(action);
+    setPasswordError(null);
+    setPasswordInput('');
+    setIsPasswordModalOpen(true);
+  };
+
+  const verifyPassword = async () => {
+    setPasswordError(null);
+    setPasswordChecking(true);
+
+    try {
+      const response = await fetch('/api/verify-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: passwordInput })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.valid) {
+        setPasswordError(data.error || 'Password is incorrect');
+        return false;
+      }
+
+      setIsAdmin(true);
+      return true;
+    } catch (error) {
+      setPasswordError('Unable to verify password. Please try again.');
+      return false;
+    } finally {
+      setPasswordChecking(false);
+    }
+  };
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -289,7 +339,7 @@ export default function App() {
                 )}
 
                 <button
-                  onClick={() => setIsAddingLink(true)}
+                  onClick={() => openAdminAction('links')}
                   className="w-full flex items-center justify-center gap-2 p-4 border-2 border-dashed rounded-2xl text-white/40 hover:text-white transition-all group"
                   style={{ borderColor: theme.primaryColor + '33' }}
                 >
@@ -352,7 +402,7 @@ export default function App() {
                 )}
 
                 <button
-                  onClick={() => setIsAddingProject(true)}
+                  onClick={() => openAdminAction('projects')}
                   className="flex flex-col items-center justify-center gap-2 p-8 border-2 border-dashed rounded-2xl text-white/40 hover:text-white transition-all group min-h-[200px]"
                   style={{ borderColor: theme.primaryColor + '33' }}
                 >
@@ -375,6 +425,50 @@ export default function App() {
           {isAddingProject && (
             <Modal title="Add New Project" onClose={() => setIsAddingProject(false)}>
               <AddProjectForm onSubmit={addProject} />
+            </Modal>
+          )}
+
+          {isPasswordModalOpen && (
+            <Modal
+              title={pendingAction === 'projects' ? 'Admin password required' : 'Admin password required'}
+              onClose={() => setIsPasswordModalOpen(false)}
+            >
+              <form
+                className="space-y-4"
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const valid = await verifyPassword();
+                  if (!valid || !pendingAction) return;
+
+                  setIsPasswordModalOpen(false);
+                  if (pendingAction === 'links') {
+                    setIsAddingLink(true);
+                  } else {
+                    setIsAddingProject(true);
+                  }
+                }}
+              >
+                <div>
+                  <label className="block text-sm font-medium text-white/60 mb-1">Password</label>
+                  <input
+                    type="password"
+                    required
+                    value={passwordInput}
+                    onChange={(e) => setPasswordInput(e.target.value)}
+                    disabled={passwordChecking}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-white/30 transition-colors"
+                    placeholder="Enter admin password"
+                  />
+                </div>
+                {passwordError && <p className="text-sm text-red-300">{passwordError}</p>}
+                <button
+                  type="submit"
+                  disabled={passwordChecking}
+                  className="w-full py-4 bg-white text-black font-bold rounded-2xl hover:scale-[1.02] active:scale-95 transition-all mt-4"
+                >
+                  {passwordChecking ? 'Verifying...' : 'Verify password'}
+                </button>
+              </form>
             </Modal>
           )}
         </AnimatePresence>
